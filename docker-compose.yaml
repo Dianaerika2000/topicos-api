@@ -1,0 +1,15 @@
+# Use postgres/example user/password credentials
+
+version: '3.1'
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: db_topicos
+    ports:
+      - "5437:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
