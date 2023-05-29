@@ -3,6 +3,9 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DenunciationModule } from './denunciation/denunciation.module';
+import { CommonModule } from './common/common.module';
+import { TypeDenunciationModule } from './type-denunciation/type-denunciation.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -16,7 +19,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       synchronize: true,
       autoLoadEntities: true,
     }),
-    AuthModule
+    AuthModule,
+    DenunciationModule,
+    CommonModule,
+    TypeDenunciationModule
   ],
   controllers: [],
   providers: [],

@@ -1,5 +1,6 @@
 import e from 'express';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Denunciation } from 'src/denunciation/entities/denunciation.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
 export class Auth {
@@ -30,5 +31,9 @@ export class Auth {
     @Column('text')
     foto: string;
 
-    
+    @OneToMany(
+      () => Denunciation,
+      denunciation => denunciation.neighbor,
+    )
+    denunciations: Denunciation[];
 }
