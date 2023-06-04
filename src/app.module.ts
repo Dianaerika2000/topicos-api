@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DenunciationModule } from './denunciation/denunciation.module';
 import { CommonModule } from './common/common.module';
 import { TypeDenunciationModule } from './type-denunciation/type-denunciation.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -22,9 +24,10 @@ import { TypeDenunciationModule } from './type-denunciation/type-denunciation.mo
     AuthModule,
     DenunciationModule,
     CommonModule,
-    TypeDenunciationModule
+    TypeDenunciationModule,
+    CloudinaryModule
   ],
   controllers: [],
-  providers: [],
+  providers: [CloudinaryModule, CloudinaryService],
 })
 export class AppModule {}

@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { TypeDenunciationModule } from 'src/type-denunciation/type-denunciation.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthModule } from 'src/auth/auth.module';
     TypeOrmModule.forFeature([Denunciation]),
     TypeDenunciationModule,
     AuthModule,
+    CloudinaryModule,
   ],
   controllers: [DenunciationController],
   providers: [DenunciationService],
