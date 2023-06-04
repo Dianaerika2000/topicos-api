@@ -7,11 +7,12 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeDenunciationModule } from 'src/type-denunciation/type-denunciation.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { Images } from './entities/images.entity';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Denunciation]),
+    TypeOrmModule.forFeature([Denunciation, Images]),
     TypeDenunciationModule,
     AuthModule,
     CloudinaryModule,

@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { TypeDenunciation } from "src/type-denunciation/entities/type-denunciation.entity";
 import { Auth } from "src/auth/entities/auth.entity";
+import { Images } from './images.entity';
 
 @Entity()
 export class Denunciation {
@@ -9,9 +10,6 @@ export class Denunciation {
 
   @Column('text')
   description: string;
-
-  @Column({ type: 'jsonb', array: false, nullable: false })
-  images: string;
 
   @Column('text', { default: 'Pendiente' })
   status: string;
@@ -25,6 +23,7 @@ export class Denunciation {
   @ManyToOne(
     () => Auth,
     auth => auth.denunciations,
+    { cascade: true, eager: true }
   )
   @JoinColumn()
   neighbor: Auth;
@@ -32,8 +31,15 @@ export class Denunciation {
   @ManyToOne(
     () => TypeDenunciation,
     typeDenunciation => typeDenunciation.denunciations,
-    { cascade: true }
+    { cascade: true, eager: true }
   )
   @JoinColumn()
   type_denunciation: TypeDenunciation;
+  
+  @OneToMany(
+    () => Images,
+    images => images.denunciation,
+    { cascade: true, eager: true }
+  )
+  images?: Images[];
 }

@@ -3,21 +3,30 @@ import { CreateDenunciationDto } from './dto/create-denunciation.dto';
 import { UpdateDenunciationDto } from './dto/update-denunciation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Denunciation } from './entities/denunciation.entity';
-import { Between, Repository } from 'typeorm';
+import { Between, DataSource, Repository } from 'typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { TypeDenunciation } from 'src/type-denunciation/entities/type-denunciation.entity';
 import { Auth } from 'src/auth/entities/auth.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { Images } from './entities/images.entity';
 
 @Injectable()
 export class DenunciationService {
   constructor(
     @InjectRepository(TypeDenunciation)
     private readonly typeDenunciationRepository: Repository<TypeDenunciation>,
+    
     @InjectRepository(Auth)
     private readonly neighborRepository: Repository<Auth>,
+    
     @InjectRepository(Denunciation)
     private readonly denunciationRepository: Repository<Denunciation>,
+    
+    @InjectRepository(Images)
+    private readonly imagesRepository: Repository<Images>,
+    
+    private readonly dataSource: DataSource,
+    
     private readonly cloudinaryService: CloudinaryService,
   ){}
 
@@ -33,14 +42,20 @@ export class DenunciationService {
         throw new Error('Neighbor not found');
       }  
       
+      const { images = [], ...denunciationDetails } = createDenunciationDto      
+
       const denunciation = this.denunciationRepository.create({
-        ...createDenunciationDto,
+        ...denunciationDetails,
         type_denunciation: typeDenunciation,
         neighbor: neighbor,
+        images: images.map( image => this.imagesRepository.create({ url: image }))
       });
 
+      await this.imagesRepository.save(denunciation.images);
       await this.denunciationRepository.save(denunciation);
+      
       return denunciation;
+
     } catch (error) {
       this.handleDBError(error);
     } 
@@ -52,7 +67,11 @@ export class DenunciationService {
     return await this.denunciationRepository.find({
       take: limit,
       skip: offset,
-      // TODO: add order by
+      relations: {
+        neighbor: true,
+        type_denunciation: true,
+        images: true,
+      }
     });
   }
 
@@ -75,6 +94,7 @@ export class DenunciationService {
     return await this.denunciationRepository
       .createQueryBuilder('denunciation')
       .leftJoinAndSelect('denunciation.type_denunciation', 'typeDenunciation')
+      .leftJoinAndSelect('denunciation.images', 'images')
       .where('typeDenunciation.name = :typeDenunciationName', { typeDenunciationName })
       .getMany();
   }
@@ -88,17 +108,36 @@ export class DenunciationService {
   }
 
   async update(id: number, updateDenunciationDto: UpdateDenunciationDto) {
+    const { images,...denunciationDetails } = updateDenunciationDto;
+
     const denunciation = await this.denunciationRepository.preload({
       id: id,
-      ...updateDenunciationDto,
+      ...denunciationDetails, 
     });
-
-    if (!denunciation) throw new NotFoundException(`Denunciation with id ${ id } not found`);
     
+    if (!denunciation) throw new NotFoundException(`Denunciation with id ${ id } not found`);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try{
-      return await this.denunciationRepository.save(denunciation);
+    
+      if( images ){
+        await queryRunner.manager.delete(Images, { denunciation: { id } });
+        denunciation.images = images.map( image => this.imagesRepository.create({ url: image }));
+      }else{
+        denunciation.images = await this.imagesRepository.findBy({ denunciation: { id } });
+      }
+      
+      await queryRunner.manager.save( denunciation );
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return denunciation;
     }
     catch (error) {
+      await queryRunner.rollbackTransaction();
       this.handleDBError(error);
     }
   }
@@ -143,6 +182,7 @@ export class DenunciationService {
         ...createDenunciationDto,
         type_denunciation: typeDenunciation,
         neighbor: neighbor,
+        images: []
       });
   
       await this.denunciationRepository.save(denunciation);

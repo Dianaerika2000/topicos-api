@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsNumber, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
 
 export class CreateDenunciationDto {
   @IsString()
@@ -7,9 +7,6 @@ export class CreateDenunciationDto {
   description: string;
 
   @IsString()
-  images: string;
-  
-  @IsString()
   location: string;
   
   @IsUUID()
@@ -17,4 +14,8 @@ export class CreateDenunciationDto {
   
   @IsNumber()
   type_denunciation_id: number;
+  
+  @IsString({ each: true })
+  @IsArray()
+  images: string[];
 }

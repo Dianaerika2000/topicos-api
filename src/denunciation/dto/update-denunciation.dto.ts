@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateDenunciationDto } from './create-denunciation.dto';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsArray, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class UpdateDenunciationDto extends PartialType(CreateDenunciationDto) {
   @IsString()
@@ -8,6 +8,7 @@ export class UpdateDenunciationDto extends PartialType(CreateDenunciationDto) {
   @MaxLength(512)
   description: string;
 
-  @IsString()
-  images: string;
+  @IsString({ each: true })
+  @IsArray()
+  images: string[];
 }
