@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, UseInterceptors, UploadedFile, ParseUUIDPipe } from '@nestjs/common';
 import { DenunciationService } from './denunciation.service';
 import { CreateDenunciationDto } from './dto/create-denunciation.dto';
 import { UpdateDenunciationDto } from './dto/update-denunciation.dto';
@@ -11,7 +11,7 @@ export class DenunciationController {
 
   @Post()
   create(@Body() createDenunciationDto: CreateDenunciationDto) {
-    return this.denunciationService.create(createDenunciationDto);
+    return this.denunciationService.createWithImage64(createDenunciationDto);
   }
 
   @Get()
@@ -19,21 +19,21 @@ export class DenunciationController {
     return this.denunciationService.findAll( paginationDto );
   }
 
-  @Get('status')
-  findAllByStatus( @Query('status') status: string ) {
-    return this.denunciationService.findAllByStatus( status );
+  @Get(':id/status')
+  findAllByStatus( @Param('id', ParseUUIDPipe) id: string, @Query('status') status: string ) {
+    return this.denunciationService.findAllByStatus(status, id);
   }
 
-  @Get('date-range')
-  findAllByDateRange( @Query('startDate') startDate: string, @Query('endDate') endDate: string ) {
+  @Get(':id/date-range')
+  findAllByDateRange( @Param('id', ParseUUIDPipe) id: string, @Query('startDate') startDate: string, @Query('endDate') endDate: string ) {
     const startDateObj = new Date(Date.parse(`${startDate}T00:00:00`));
     const endDateObj = new Date(Date.parse(`${endDate}T23:59:59`));
-    return this.denunciationService.findAllByDateRange( startDateObj, endDateObj );
+    return this.denunciationService.findAllByDateRange( startDateObj, endDateObj, id );
   }
 
-  @Get('type/:typeDenunciationName')
-  findAllByTypeDenunciation(@Param('typeDenunciationName') typeDenunciationName: string){
-    return this.denunciationService.findAllByTypeDenunciation(typeDenunciationName);
+  @Get(':id/type/:typeDenunciationName')
+  findAllByTypeDenunciation(@Param('id', ParseUUIDPipe) id:string, @Param('typeDenunciationName') typeDenunciationName: string){
+    return this.denunciationService.findAllByTypeDenunciation(typeDenunciationName, id);
   }  
   
   @Get(':id')
@@ -46,12 +46,17 @@ export class DenunciationController {
     @Param('id', ParseIntPipe) id: number, 
     @Body() updateDenunciationDto: UpdateDenunciationDto
   ) {
-    return this.denunciationService.update(id, updateDenunciationDto);
+    return this.denunciationService.updateWithImage64(id, updateDenunciationDto);
   }
 
   @Patch(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  changeStatus(@Param('id', ParseIntPipe) id: number) {
     return this.denunciationService.changeStatus(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.denunciationService.remove(id);
   }
 
   @Post('upload')
@@ -65,14 +70,10 @@ export class DenunciationController {
     }
   }
 
-  @Post('upload/images')
-  @UseInterceptors(FileInterceptor('file'))
-  async createDenunciationWithImage(
-    @Body() createDenunciationDto: CreateDenunciationDto,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  @Post('upload-image64')
+  async uploadImage64(@Body('file') file: string) {
     try {
-      const result = await this.denunciationService.createWithImage(createDenunciationDto, file);
+      const result = await this.denunciationService.uploadImage64ToCloudinary(file);
       return result;
     } catch (error) {
       throw error;

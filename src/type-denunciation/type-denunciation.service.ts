@@ -21,8 +21,8 @@ export class TypeDenunciationService {
     } 
   }
 
-  findAll() {
-    return `This action returns all typeDenunciation`;
+  async findAll() {
+    return await this.typeDenunciationRepository.find(); 
   }
 
   findOne(id: number) {

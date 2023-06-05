@@ -13,8 +13,8 @@ export class Images {
   @ManyToOne(
     () => Denunciation,
     denunciation => denunciation.images,
+    { onDelete: 'CASCADE' }
   )
   @JoinColumn()
   denunciation: Denunciation;
-
 }
