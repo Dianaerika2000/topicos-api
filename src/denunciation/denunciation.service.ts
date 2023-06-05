@@ -99,7 +99,7 @@ export class DenunciationService {
     } 
   }
 
-  async findAll( paginationDto: PaginationDto) {
+  async findAll( paginationDto: PaginationDto, id: string) {
     const { limit = 10, offset = 0 } = paginationDto;
 
     return await this.denunciationRepository.find({
@@ -109,7 +109,8 @@ export class DenunciationService {
         neighbor: true,
         type_denunciation: true,
         images: true,
-      }
+      },
+      where: { neighbor: {id: id}}
     });
   }
 

@@ -14,9 +14,9 @@ export class DenunciationController {
     return this.denunciationService.createWithImage64(createDenunciationDto);
   }
 
-  @Get()
-  findAll( @Query() paginationDto: PaginationDto) {
-    return this.denunciationService.findAll( paginationDto );
+  @Get(':id')
+  findAll( @Param('id', ParseUUIDPipe) id: string, @Query() paginationDto: PaginationDto) {
+    return this.denunciationService.findAll( paginationDto, id );
   }
 
   @Get(':id/status')
