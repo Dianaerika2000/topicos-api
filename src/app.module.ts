@@ -8,6 +8,7 @@ import { CommonModule } from './common/common.module';
 import { TypeDenunciationModule } from './type-denunciation/type-denunciation.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { OpenaiModule } from './openai/openai.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -25,7 +26,8 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
     DenunciationModule,
     CommonModule,
     TypeDenunciationModule,
-    CloudinaryModule
+    CloudinaryModule,
+    OpenaiModule
   ],
   controllers: [],
   providers: [CloudinaryModule, CloudinaryService],

@@ -8,6 +8,8 @@ import { TypeDenunciationModule } from 'src/type-denunciation/type-denunciation.
 import { AuthModule } from 'src/auth/auth.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { Images } from './entities/images.entity';
+import { HttpModule } from '@nestjs/axios';
+import { OpenaiModule } from 'src/openai/openai.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { Images } from './entities/images.entity';
     TypeDenunciationModule,
     AuthModule,
     CloudinaryModule,
+    HttpModule,
+    OpenaiModule,
   ],
   controllers: [DenunciationController],
   providers: [DenunciationService],

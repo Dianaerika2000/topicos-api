@@ -4,6 +4,7 @@ import { CreateDenunciationDto } from './dto/create-denunciation.dto';
 import { UpdateDenunciationDto } from './dto/update-denunciation.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ValidateDescriptionDto } from 'src/openai/dto/validate-description.dto';
 
 @Controller('denunciation')
 export class DenunciationController {
@@ -78,5 +79,11 @@ export class DenunciationController {
     } catch (error) {
       throw error;
     }
+  }
+
+  @Post('description')
+  async validateDescription(@Body() description: string) {
+    // return this.denunciationService.validateDescription(description);
+    return this.denunciationService.verifyDescription( description );
   }
 }

@@ -3,7 +3,7 @@ import { CreateDenunciationDto } from './dto/create-denunciation.dto';
 import { UpdateDenunciationDto } from './dto/update-denunciation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Denunciation } from './entities/denunciation.entity';
-import { Between, DataSource, Repository } from 'typeorm';
+import { Any, Between, DataSource, Repository } from 'typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { TypeDenunciation } from 'src/type-denunciation/entities/type-denunciation.entity';
 import { Auth } from 'src/auth/entities/auth.entity';
@@ -12,6 +12,10 @@ import { Images } from './entities/images.entity';
 import sharp from 'sharp';
 import { Readable } from 'typeorm/platform/PlatformTools';
 import { v4 as uuid } from 'uuid'
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
+import { OpenaiService } from 'src/openai/openai.service';
 
 @Injectable()
 export class DenunciationService {
@@ -31,6 +35,12 @@ export class DenunciationService {
     private readonly dataSource: DataSource,
     
     private readonly cloudinaryService: CloudinaryService,
+
+    private readonly httpService: HttpService,
+
+    private readonly configService: ConfigService,
+
+    private readonly openAIService: OpenaiService,
   ){}
 
   async create(createDenunciationDto: CreateDenunciationDto) {
@@ -75,14 +85,23 @@ export class DenunciationService {
       if (!neighbor) {
         throw new Error('Neighbor not found');
       }  
+
+      const { images = [], description, ...denunciationDetails } = createDenunciationDto;
+
+      // const descriptionValidated: boolean = await this.validateDescription(description); // by Jasmany
+      const descriptionValidated: boolean = await this.verifyDescription(description); // by ME
       
-      const { images = [], ...denunciationDetails } = createDenunciationDto
-      
-      // const urls: string[] = images.map( async image => await this.uploadImage64ToCloudinary(image) );
+      if( descriptionValidated ){
+        return new BadRequestException({
+          error: 'La denuncia contiene palabras ofensivas',
+        });
+      }
+
       const urls: string[] = await Promise.all(images.map(async image => await this.uploadImage64ToCloudinary(image)));
 
       const denunciation = this.denunciationRepository.create({
         ...denunciationDetails,
+        description: description,
         type_denunciation: typeDenunciation,
         neighbor: neighbor,
         images: urls.map( image => this.imagesRepository.create({ url: image }))
@@ -283,5 +302,22 @@ export class DenunciationService {
     } catch (error) {
       throw new BadRequestException('Invalid file type.');
     }
+  }
+
+  async validateDescription( description: string ): Promise<any> {
+    try {
+      const response = await firstValueFrom(this.httpService.post(this.configService.get('URL_VALIDATION_DESCRIPTION'), { texto: description }));
+      console.log('openai', response.data.es_obsceno);
+      // return true;
+      return response.data.es_obsceno;
+    } catch (error) {
+      throw new BadRequestException('Invalid description.');
+    }
+  }
+
+  async verifyDescription( description: string ) {
+    const validatedDescription = await this.openAIService.validateDescriptionGPT3( description );
+    console.log(validatedDescription);
+    return validatedDescription == 'Si' || 'Si.' ? true : false;
   }
 }
