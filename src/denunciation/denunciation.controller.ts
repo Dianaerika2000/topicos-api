@@ -5,6 +5,7 @@ import { UpdateDenunciationDto } from './dto/update-denunciation.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ValidateDescriptionDto } from 'src/openai/dto/validate-description.dto';
+import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
 
 @Controller('denunciation')
 export class DenunciationController {
@@ -14,7 +15,19 @@ export class DenunciationController {
   create(@Body() createDenunciationDto: CreateDenunciationDto) {
     return this.denunciationService.createWithImage64(createDenunciationDto);
   }
-
+  @Get('filters')
+  findByAllFilters(
+    @Query('status') status: string,
+    @Query('type') type: string,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.denunciationService.findByAllFilters(status, type, startDate, endDate);
+  }
+  @Get()
+  findAllNoId() {
+    return this.denunciationService.findNoId();
+  }
   @Get(':id')
   findAll( @Param('id', ParseUUIDPipe) id: string, @Query() paginationDto: PaginationDto) {
     return this.denunciationService.findAll( paginationDto, id );

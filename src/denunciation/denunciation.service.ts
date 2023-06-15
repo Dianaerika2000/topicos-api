@@ -9,16 +9,17 @@ import { TypeDenunciation } from 'src/type-denunciation/entities/type-denunciati
 import { Auth } from 'src/auth/entities/auth.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { Images } from './entities/images.entity';
-import sharp from 'sharp';
 import { Readable } from 'typeorm/platform/PlatformTools';
 import { v4 as uuid } from 'uuid'
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiService } from 'src/openai/openai.service';
+import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
 
 @Injectable()
 export class DenunciationService {
+  
   constructor(
     @InjectRepository(TypeDenunciation)
     private readonly typeDenunciationRepository: Repository<TypeDenunciation>,
@@ -42,6 +43,22 @@ export class DenunciationService {
 
     private readonly openAIService: OpenaiService,
   ){}
+    
+  async findNoId() {
+    try{
+      const denunciations = await this.denunciationRepository.find({
+        relations: {
+          neighbor: true,
+          type_denunciation: true,
+          images: true,
+        },
+      });
+      return denunciations;
+    }catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
 
   async create(createDenunciationDto: CreateDenunciationDto) {
     try {
@@ -89,13 +106,13 @@ export class DenunciationService {
       const { images = [], description, ...denunciationDetails } = createDenunciationDto;
 
       // const descriptionValidated: boolean = await this.validateDescription(description); // by Jasmany
-      const descriptionValidated: boolean = await this.verifyDescription(description); // by ME
+     // const descriptionValidated: boolean = await this.verifyDescription(description); // by ME
       
-      if( descriptionValidated ){
+     /*  if( descriptionValidated ){
         return new BadRequestException({
           error: 'La denuncia contiene palabras ofensivas',
         });
-      }
+      } */
 
       const urls: string[] = await Promise.all(images.map(async image => await this.uploadImage64ToCloudinary(image)));
 
@@ -147,6 +164,42 @@ export class DenunciationService {
       },
     });
     return denunciations;
+  }
+  async findByAllFilters(status: string, type: string, startDate: string, endDate: string) {
+    try {
+      let startDateObj = startDate ? new Date(`${startDate}T00:00:00`) : null;
+      let endDateObj = endDate ? new Date(`${endDate}T23:59:59`) : null;
+
+      const queryBuilder = this.denunciationRepository
+        .createQueryBuilder('denunciation')
+        .leftJoinAndSelect('denunciation.type_denunciation', 'typeDenunciation')
+        .where('1 = 1'); // Condición inicial para poder agregar condiciones dinámicamente
+
+      // Filtrar por estado si se proporciona
+      if (status) {
+        queryBuilder.andWhere('denunciation.status = :status', { status });
+      }
+
+      // Filtrar por tipo si se proporciona
+      if (type) {
+        queryBuilder.andWhere('typeDenunciation.id = :type', { type });
+      }
+
+      // Filtrar por rango de fechas si se proporciona
+      if (startDateObj && endDateObj) {
+        queryBuilder.andWhere('denunciation.creation_date BETWEEN :startDate AND :endDate', {
+          startDate: startDateObj,
+          endDate: endDateObj,
+        });
+      }
+
+      const denunciations = await queryBuilder.getMany();
+
+      return denunciations;
+
+    }catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async findAllByTypeDenunciation(typeDenunciationName: string, id: string): Promise<Denunciation[]> {
