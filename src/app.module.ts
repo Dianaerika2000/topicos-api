@@ -9,6 +9,8 @@ import { TypeDenunciationModule } from './type-denunciation/type-denunciation.mo
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { OpenaiModule } from './openai/openai.module';
+import { AreaModule } from './area/area.module';
+import { GovernmentEmployeeModule } from './government-employee/government-employee.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -27,7 +29,9 @@ import { OpenaiModule } from './openai/openai.module';
     CommonModule,
     TypeDenunciationModule,
     CloudinaryModule,
-    OpenaiModule
+    OpenaiModule,
+    AreaModule,
+    GovernmentEmployeeModule
   ],
   controllers: [],
   providers: [CloudinaryModule, CloudinaryService],

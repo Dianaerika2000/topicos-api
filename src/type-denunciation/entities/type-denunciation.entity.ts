@@ -1,5 +1,6 @@
+import { Area } from "src/area/entities/area.entity";
 import { Denunciation } from "src/denunciation/entities/denunciation.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class TypeDenunciation {
@@ -14,4 +15,11 @@ export class TypeDenunciation {
     denunciation => denunciation.type_denunciation,
   )
   denunciations?: Denunciation[];
+
+  @OneToOne(
+    () => Area,
+    area => area.type_denunciation,
+  )
+  @JoinColumn()
+  area: Area;
 }
