@@ -1,6 +1,9 @@
 import { IsArray, IsNumber, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
 
 export class CreateDenunciationDto {
+
+  @IsString()
+  title: string;
   @IsString()
   @MinLength(60)
   @MaxLength(512)

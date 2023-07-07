@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Area } from 'src/area/entities/area.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class GovernmentEmployeeService {
   constructor(
@@ -19,6 +19,7 @@ export class GovernmentEmployeeService {
 
   async create(createGovernmentEmployeeDto: CreateGovernmentEmployeeDto) {
     try {
+      const { password } = createGovernmentEmployeeDto;
       console.log(createGovernmentEmployeeDto)
       const { area_id, ...governmentEmployeeDetail } = createGovernmentEmployeeDto;
       const area = await this.areaRepository.findOneBy({ id: area_id });
@@ -31,6 +32,7 @@ export class GovernmentEmployeeService {
       const governmentEmployee = this.governmentEmployeeRepository.create({
         ...governmentEmployeeDetail,
         area: area,
+        password: await bcrypt.hash(password, 10),
       });
 
       console.log(governmentEmployee);

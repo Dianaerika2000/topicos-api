@@ -8,9 +8,11 @@ import { AuthController } from './auth.controller';
 import { Auth } from './entities/auth.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GovernmentEmployeeModule } from 'src/government-employee/government-employee.module';
 @Module({
   imports: [
     ConfigModule,
+    GovernmentEmployeeModule,
     TypeOrmModule.forFeature([Auth]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

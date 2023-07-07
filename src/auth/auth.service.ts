@@ -10,19 +10,24 @@ import { LoginAuthDto } from './dto/login-auth.dto';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { ValidateEmailDto } from './dto/validate-email-dto';
 import { on } from 'events';
+import { GovernmentEmployee } from 'src/government-employee/entities/government-employee.entity';
 
 @Injectable()
 export class AuthService {
   
   constructor(@InjectRepository(Auth) private readonly userRepository: Repository<Auth>, 
-              private readonly jwtService: JwtService
+              private readonly jwtService: JwtService,
+              @InjectRepository(GovernmentEmployee) private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>
             ){}
   
   async login(LoginAuthDto: LoginAuthDto) {
     
     const { correo , contrasenia } = LoginAuthDto;
     const user = await this.userRepository.findOne({ where: { correo } });
-    if (!user) throw new BadRequestException('User not found');
+    if (!user) throw new NotFoundException('User not found');
+
+
+
     // compare password
     const isMatch = await bcrypt.compare(contrasenia , user.contrasenia);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
@@ -37,13 +42,25 @@ export class AuthService {
     try {
       const { correo , contrasenia } = LoginAuthDto;
       const user = await this.userRepository.findOne({ where: { correo } });
-      if (!user) throw new NotFoundException('User not found');
+      const userEmployee = await this.governmentEmployeeRepository.findOne({ where: { email: correo } });
+      let isMatch = false;
+      let isEmloyee = false;
+      if ( user ) {
+        isMatch = await bcrypt.compare(contrasenia , user.contrasenia);
+      }else if(userEmployee){
+        isMatch = await bcrypt.compare(contrasenia , userEmployee.password);
+        isEmloyee = true; 
+      } else{
+        throw new BadRequestException('User not found');
+      }
       // compare password
-      const isMatch = await bcrypt.compare(contrasenia , user.contrasenia);
       if (!isMatch) throw new UnauthorizedException('Invalid credentials');
-      return {
+      return !isEmloyee ? {
         ...user,
         token: this.generateJwt({id: user.id })
+      }: {
+        ...userEmployee,
+        token: this.generateJwt({id: userEmployee.id.toString() })
       };
 
     }catch (error) {
@@ -70,7 +87,7 @@ export class AuthService {
         correo
       });
       await  this.userRepository.save(user);
-      return {
+      return  {
         ...user,
         token: this.generateJwt({id: user.id })
       };

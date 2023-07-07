@@ -26,6 +26,8 @@ export class GovernmentEmployee {
 
   @Column('bool', { default: true })
   status: boolean;
+  @Column('text', {default: 'employee'})
+  role: string;
 
   @ManyToOne(
     () => Area,

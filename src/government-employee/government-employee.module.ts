@@ -11,6 +11,7 @@ import { AreaModule } from 'src/area/area.module';
     AreaModule,
   ],
   controllers: [GovernmentEmployeeController],
-  providers: [GovernmentEmployeeService]
+  providers: [GovernmentEmployeeService],
+  exports: [TypeOrmModule]
 })
 export class GovernmentEmployeeModule {}

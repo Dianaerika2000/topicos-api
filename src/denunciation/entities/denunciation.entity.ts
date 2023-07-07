@@ -9,6 +9,9 @@ export class Denunciation {
   id: number;
 
   @Column('text')
+  title: string;
+
+  @Column('text')
   description: string;
 
   @Column('text', { default: 'Pendiente' })
