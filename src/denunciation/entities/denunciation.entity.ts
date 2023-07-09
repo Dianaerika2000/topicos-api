@@ -8,7 +8,7 @@ export class Denunciation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('text')
+  @Column('text', {nullable: true})
   title: string;
 
   @Column('text')
