@@ -31,6 +31,12 @@ export class Auth {
     @Column('text')
     foto: string;
 
+    @Column({ type: 'boolean', default: false })
+    active: boolean;
+
+    @Column({ type: 'uuid', unique: true, nullable: true })
+    activation_token: string;
+
     @OneToMany(
       () => Denunciation,
       denunciation => denunciation.neighbor,

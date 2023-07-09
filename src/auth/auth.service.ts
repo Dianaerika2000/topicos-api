@@ -11,14 +11,19 @@ import { RegisterAuthDto } from './dto/register-auth.dto';
 import { ValidateEmailDto } from './dto/validate-email-dto';
 import { on } from 'events';
 import { GovernmentEmployee } from 'src/government-employee/entities/government-employee.entity';
+import { v4 as uuid } from 'uuid';
+import { MailService } from 'src/mail/mail.service';
+import { ActivateUserDto } from './dto/activate-user.dto';
 
 @Injectable()
 export class AuthService {
   
-  constructor(@InjectRepository(Auth) private readonly userRepository: Repository<Auth>, 
-              private readonly jwtService: JwtService,
-              @InjectRepository(GovernmentEmployee) private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>
-            ){}
+  constructor(
+    @InjectRepository(Auth) private readonly userRepository: Repository<Auth>, 
+    private readonly jwtService: JwtService,
+    @InjectRepository(GovernmentEmployee) private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>,
+    private readonly mailService: MailService
+    ){}
   
   async login(LoginAuthDto: LoginAuthDto) {
     
@@ -80,14 +85,22 @@ export class AuthService {
       
       const emailExists = await this.userRepository.findOne({ where: { correo: correo } });
       if (emailExists) throw new BadRequestException('EMAIL_EXISTS');
+
+      // const activationToken = uuid();
+
       const user = this.userRepository.create({
         ...detailsCreateAuthDto,
         contrasenia: await bcrypt.hash(contrasenia, 10),
         ci,
-        correo
+        correo, 
+        // activation_token: activationToken
       });
+
+      // await this.mailService.sendVerificationEmail(user, activationToken);
+      
       await  this.userRepository.save(user);
-      return  {
+      
+      return {
         ...user,
         token: this.generateJwt({id: user.id })
       };
@@ -113,4 +126,25 @@ export class AuthService {
     return {message:'EMAIL_EXISTS'}
   }
 
+  async verifyEmail(activateUserDto: ActivateUserDto){
+    try {
+      const { token } = activateUserDto;
+      const neighbor = await this.userRepository.findOneBy({ activation_token: token });
+      
+      if (!neighbor){
+        throw new BadRequestException('INVALID_TOKEN');
+      }
+
+      if (neighbor.active){
+        throw new BadRequestException('USER_ALREADY_ACTIVE');
+        console.log('USER_ALREADY_ACTIVE');
+      }
+
+      neighbor.active = true;
+      neighbor.activation_token = null;
+      return await this.userRepository.save(neighbor);
+    } catch (error) {
+      return error;
+    }
+  }
 }

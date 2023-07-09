@@ -99,4 +99,15 @@ export class DenunciationController {
     // return this.denunciationService.validateDescription(description);
     return this.denunciationService.verifyDescription( description );
   }
+
+  //Denuncias por tipo para el funcionario 
+  @Get('type-denunciation/:id')
+  findAllDenunciationsByType( @Param('id', ParseIntPipe) id: number, @Query() paginationDto: PaginationDto) {
+    return this.denunciationService.findAllByType( paginationDto, id );
+  }
+
+  @Get(':id')
+  findOneByType(@Param('id', ParseIntPipe) id: number) {
+    return this.denunciationService.findOne(id);
+  }
 }

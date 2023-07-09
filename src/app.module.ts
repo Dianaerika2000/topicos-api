@@ -11,9 +11,13 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { OpenaiModule } from './openai/openai.module';
 import { AreaModule } from './area/area.module';
 import { GovernmentEmployeeModule } from './government-employee/government-employee.module';
+import { MailModule } from './mail/mail.module';
+// import { DenuciationWsModule } from './denuciation-ws/denuciation-ws.module';
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -31,7 +35,9 @@ import { GovernmentEmployeeModule } from './government-employee/government-emplo
     CloudinaryModule,
     OpenaiModule,
     AreaModule,
-    GovernmentEmployeeModule
+    GovernmentEmployeeModule,
+    MailModule,
+    // DenuciationWsModule
   ],
   controllers: [],
   providers: [CloudinaryModule, CloudinaryService],

@@ -150,6 +150,21 @@ export class DenunciationService {
     });
   }
 
+  async findAllByType( paginationDto: PaginationDto, id: number) {
+    const { limit = 10, offset = 0 } = paginationDto;
+
+    return await this.denunciationRepository.find({
+      take: limit,
+      skip: offset,
+      relations: {
+        neighbor: true,
+        type_denunciation: true,
+        images: true,
+      },
+      where: { type_denunciation: {id: id}}
+    });
+  }
+
   async findAllByStatus( status: string, id: string) {
     return await this.denunciationRepository.find({
       where: { status: status, neighbor: {id: id} },
@@ -214,6 +229,14 @@ export class DenunciationService {
   }
   
   async findOne(id: number) {
+    const denunciation = await this.denunciationRepository.findOneBy({ id });
+    if (!denunciation) {
+      throw new NotFoundException(`Denunciation with id ${ id } not found`);
+    }
+    return await this.denunciationRepository.findOneBy({ id });
+  }
+
+  async findOneByType(id: number) {
     const denunciation = await this.denunciationRepository.findOneBy({ id });
     if (!denunciation) {
       throw new NotFoundException(`Denunciation with id ${ id } not found`);

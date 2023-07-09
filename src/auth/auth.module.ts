@@ -9,6 +9,7 @@ import { Auth } from './entities/auth.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GovernmentEmployeeModule } from 'src/government-employee/government-employee.module';
+import { MailModule } from 'src/mail/mail.module';
 @Module({
   imports: [
     ConfigModule,
@@ -25,6 +26,7 @@ import { GovernmentEmployeeModule } from 'src/government-employee/government-emp
         };
       },
     }),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

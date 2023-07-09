@@ -10,6 +10,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { Images } from './entities/images.entity';
 import { HttpModule } from '@nestjs/axios';
 import { OpenaiModule } from 'src/openai/openai.module';
+// import { DenuciationGateway } from './denunciation.gateway';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { OpenaiModule } from 'src/openai/openai.module';
     OpenaiModule,
   ],
   controllers: [DenunciationController],
-  providers: [DenunciationService],
+  providers: [DenunciationService,],
   exports: [TypeOrmModule]
 })
 export class DenunciationModule {}
