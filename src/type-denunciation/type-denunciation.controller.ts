@@ -18,17 +18,17 @@ export class TypeDenunciationController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.typeDenunciationService.findOne(+id);
+  findOne(@Param('id') id: number) {
+    return this.typeDenunciationService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTypeDenunciationDto: UpdateTypeDenunciationDto) {
-    return this.typeDenunciationService.update(+id, updateTypeDenunciationDto);
+  update(@Param('id') id: number, @Body() updateTypeDenunciationDto: UpdateTypeDenunciationDto) {
+    return this.typeDenunciationService.update(id, updateTypeDenunciationDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.typeDenunciationService.remove(+id);
+  remove(@Param('id') id: number) {
+    return this.typeDenunciationService.remove(id);
   }
 }
