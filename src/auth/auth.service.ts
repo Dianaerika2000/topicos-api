@@ -24,6 +24,11 @@ export class AuthService {
     @InjectRepository(GovernmentEmployee) private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>,
     private readonly mailService: MailService
     ){}
+    @InjectRepository(Auth) 
+    private readonly userRepository: Repository<Auth>, 
+    private readonly jwtService: JwtService,
+    private readonly mailService: MailService
+  ){}
   
   async login(LoginAuthDto: LoginAuthDto) {
     
