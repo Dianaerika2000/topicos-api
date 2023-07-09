@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
@@ -17,78 +23,75 @@ import { ActivateUserDto } from './dto/activate-user.dto';
 
 @Injectable()
 export class AuthService {
-  
   constructor(
-    @InjectRepository(Auth) private readonly userRepository: Repository<Auth>, 
+    @InjectRepository(Auth) private readonly userRepository: Repository<Auth>,
     private readonly jwtService: JwtService,
-    @InjectRepository(GovernmentEmployee) private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>,
-    private readonly mailService: MailService
-    ){}
-    @InjectRepository(Auth) 
-    private readonly userRepository: Repository<Auth>, 
-    private readonly jwtService: JwtService,
-    private readonly mailService: MailService
-  ){}
-  
+    @InjectRepository(GovernmentEmployee)
+    private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>,
+    private readonly mailService: MailService,
+  ) {}
+
   async login(LoginAuthDto: LoginAuthDto) {
-    
-    const { correo , contrasenia } = LoginAuthDto;
+    const { correo, contrasenia } = LoginAuthDto;
     const user = await this.userRepository.findOne({ where: { correo } });
     if (!user) throw new NotFoundException('User not found');
 
-
-
     // compare password
-    const isMatch = await bcrypt.compare(contrasenia , user.contrasenia);
+    const isMatch = await bcrypt.compare(contrasenia, user.contrasenia);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
     return {
       ...user,
-      token: this.generateJwt({id: user.id })
+      token: this.generateJwt({ id: user.id }),
     };
-    
   }
 
-  async loginActualizado(LoginAuthDto: LoginAuthDto){
+  async loginActualizado(LoginAuthDto: LoginAuthDto) {
     try {
-      const { correo , contrasenia } = LoginAuthDto;
+      const { correo, contrasenia } = LoginAuthDto;
       const user = await this.userRepository.findOne({ where: { correo } });
-      const userEmployee = await this.governmentEmployeeRepository.findOne({ where: { email: correo } });
+      const userEmployee = await this.governmentEmployeeRepository.findOne({
+        where: { email: correo },
+      });
       let isMatch = false;
       let isEmloyee = false;
-      if ( user ) {
-        isMatch = await bcrypt.compare(contrasenia , user.contrasenia);
-      }else if(userEmployee){
-        isMatch = await bcrypt.compare(contrasenia , userEmployee.password);
-        isEmloyee = true; 
-      } else{
+      if (user) {
+        isMatch = await bcrypt.compare(contrasenia, user.contrasenia);
+      } else if (userEmployee) {
+        isMatch = await bcrypt.compare(contrasenia, userEmployee.password);
+        isEmloyee = true;
+      } else {
         throw new BadRequestException('User not found');
       }
       // compare password
       if (!isMatch) throw new UnauthorizedException('Invalid credentials');
-      return !isEmloyee ? {
-        ...user,
-        token: this.generateJwt({id: user.id })
-      }: {
-        ...userEmployee,
-        token: this.generateJwt({id: userEmployee.id.toString() })
-      };
-
-    }catch (error) {
-      if (error instanceof NotFoundException) throw new NotFoundException(error.message);
-      if (error instanceof UnauthorizedException) throw new UnauthorizedException(error.message);
-      console.log('check logs for error'+ error);
+      return !isEmloyee
+        ? {
+            ...user,
+            token: this.generateJwt({ id: user.id }),
+          }
+        : {
+            ...userEmployee,
+            token: this.generateJwt({ id: userEmployee.id.toString() }),
+          };
+    } catch (error) {
+      if (error instanceof NotFoundException)
+        throw new NotFoundException(error.message);
+      if (error instanceof UnauthorizedException)
+        throw new UnauthorizedException(error.message);
+      console.log('check logs for error' + error);
       throw new BadRequestException(error.message);
     }
   }
 
   // create user
   async createUser(registerAuthDto: RegisterAuthDto) {
-    
     try {
-      
-      const {  contrasenia, ci, correo, ...detailsCreateAuthDto } = registerAuthDto;
-      
-      const emailExists = await this.userRepository.findOne({ where: { correo: correo } });
+      const { contrasenia, ci, correo, ...detailsCreateAuthDto } =
+        registerAuthDto;
+
+      const emailExists = await this.userRepository.findOne({
+        where: { correo: correo },
+      });
       if (emailExists) throw new BadRequestException('EMAIL_EXISTS');
 
       // const activationToken = uuid();
@@ -97,24 +100,21 @@ export class AuthService {
         ...detailsCreateAuthDto,
         contrasenia: await bcrypt.hash(contrasenia, 10),
         ci,
-        correo, 
+        correo,
         // activation_token: activationToken
       });
 
       // await this.mailService.sendVerificationEmail(user, activationToken);
-      
-      await  this.userRepository.save(user);
-      
+
+      await this.userRepository.save(user);
+
       return {
         ...user,
-        token: this.generateJwt({id: user.id })
+        token: this.generateJwt({ id: user.id }),
       };
-
     } catch (error) {
-      
-      console.log('check logs for error'+ error);
+      console.log('check logs for error' + error);
       throw new BadRequestException(error.message);
-
     }
   }
 
@@ -123,24 +123,28 @@ export class AuthService {
     return token;
   }
 
-  async validateEmail(correo: ValidateEmailDto){
+  async validateEmail(correo: ValidateEmailDto) {
     const { email } = correo;
-    const user = await this.userRepository.findOne({ where: { correo:email }});
+    const user = await this.userRepository.findOne({
+      where: { correo: email },
+    });
     console.log(correo);
     if (!user) throw new BadRequestException('EMAIL_NOT_EXISTS');
-    return {message:'EMAIL_EXISTS'}
+    return { message: 'EMAIL_EXISTS' };
   }
 
-  async verifyEmail(activateUserDto: ActivateUserDto){
+  async verifyEmail(activateUserDto: ActivateUserDto) {
     try {
       const { token } = activateUserDto;
-      const neighbor = await this.userRepository.findOneBy({ activation_token: token });
-      
-      if (!neighbor){
+      const neighbor = await this.userRepository.findOneBy({
+        activation_token: token,
+      });
+
+      if (!neighbor) {
         throw new BadRequestException('INVALID_TOKEN');
       }
 
-      if (neighbor.active){
+      if (neighbor.active) {
         throw new BadRequestException('USER_ALREADY_ACTIVE');
         console.log('USER_ALREADY_ACTIVE');
       }
