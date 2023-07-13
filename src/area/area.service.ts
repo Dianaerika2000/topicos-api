@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { UpdateAreaDto } from './dto/update-area.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,7 +20,7 @@ export class AreaService {
       return area;
 
     } catch (error) {
-      console.log(error);
+      throw new BadRequestException(error.message);
     }
   }
 

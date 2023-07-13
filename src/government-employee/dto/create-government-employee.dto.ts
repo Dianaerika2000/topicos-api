@@ -11,6 +11,7 @@ export class CreateGovernmentEmployeeDto {
   email: string;
 
   @IsString()
+  @IsOptional()
   password: string;
 
   @IsString()

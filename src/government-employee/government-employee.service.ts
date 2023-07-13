@@ -19,20 +19,18 @@ export class GovernmentEmployeeService {
 
   async create(createGovernmentEmployeeDto: CreateGovernmentEmployeeDto) {
     try {
-      const { password } = createGovernmentEmployeeDto;
       console.log(createGovernmentEmployeeDto)
-      const { area_id, ...governmentEmployeeDetail } = createGovernmentEmployeeDto;
+      const { area_id, password, ...governmentEmployeeDetail } = createGovernmentEmployeeDto;
+      console.log(password)
       const area = await this.areaRepository.findOneBy({ id: area_id });
-      console.log("area", area)
       if (!area) {
-        console.log(area)
         throw new NotFoundException('Area not found');
       }
-
       const governmentEmployee = this.governmentEmployeeRepository.create({
-        ...governmentEmployeeDetail,
-        area: area,
         password: await bcrypt.hash(password, 10),
+        area: area,
+        ...governmentEmployeeDetail,
+        
       });
 
       console.log(governmentEmployee);
@@ -40,6 +38,7 @@ export class GovernmentEmployeeService {
       return await this.governmentEmployeeRepository.save(governmentEmployee);
 
     } catch (error) {
+      console.log(error)
       this.handleDBError(error);
     }
   }

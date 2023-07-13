@@ -17,10 +17,12 @@ export class TypeDenunciationService {
 
   async create(createTypeDenunciationDto: CreateTypeDenunciationDto) {  
     try {
+      console.log(createTypeDenunciationDto);
       const { name, area_id } = createTypeDenunciationDto;
       const area = await this.areaRepository.findOneBy({
         id: area_id 
       });
+      console.log(area);
 
       if (!area) {
         throw new NotFoundException('Area not found');
@@ -104,6 +106,7 @@ export class TypeDenunciationService {
   }
 
   private handleDBError(error: any): never {
+    console.log(error);
     if (error.code == 'ER_DUP_ENTRY') {
       throw new BadRequestException('Denunciation already exists');
     }

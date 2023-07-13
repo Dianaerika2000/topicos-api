@@ -1,4 +1,3 @@
-import e from 'express';
 import { Denunciation } from 'src/denunciation/entities/denunciation.entity';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
@@ -35,7 +34,7 @@ export class Auth {
     active: boolean;
 
     @Column({ type: 'uuid', unique: true, nullable: true })
-    activation_token: string;
+    activationToken: string;
 
     @OneToMany(
       () => Denunciation,

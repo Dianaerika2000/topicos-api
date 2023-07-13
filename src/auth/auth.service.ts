@@ -137,7 +137,7 @@ export class AuthService {
     try {
       const { token } = activateUserDto;
       const neighbor = await this.userRepository.findOneBy({
-        activation_token: token,
+        activationToken: token,
       });
 
       if (!neighbor) {
@@ -150,7 +150,7 @@ export class AuthService {
       }
 
       neighbor.active = true;
-      neighbor.activation_token = null;
+      neighbor.activationToken = null;
       return await this.userRepository.save(neighbor);
     } catch (error) {
       return error;
