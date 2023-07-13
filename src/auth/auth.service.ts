@@ -20,6 +20,7 @@ import { GovernmentEmployee } from 'src/government-employee/entities/government-
 import { v4 as uuid } from 'uuid';
 import { MailService } from 'src/mail/mail.service';
 import { ActivateUserDto } from './dto/activate-user.dto';
+import { randomInt } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -94,17 +95,17 @@ export class AuthService {
       });
       if (emailExists) throw new BadRequestException('EMAIL_EXISTS');
 
-      // const activationToken = uuid();
+      const activationToken = this.generateRandomNumber();
 
       const user = this.userRepository.create({
         ...detailsCreateAuthDto,
         contrasenia: await bcrypt.hash(contrasenia, 10),
         ci,
         correo,
-        // activation_token: activationToken
+        activation_token: activationToken.toString(),
       });
 
-      // await this.mailService.sendVerificationEmail(user, activationToken);
+      await this.mailService.sendVerificationEmail(correo, activationToken.toString());
 
       await this.userRepository.save(user);
 
@@ -155,5 +156,15 @@ export class AuthService {
     } catch (error) {
       return error;
     }
+  }
+
+   generateRandomNumber() {
+    const min = 1000; // Mínimo de 4 dígitos (1000)
+    const max = 9999; // Máximo de 4 dígitos (9999)
+
+    // Generar un número aleatorio entre min y max
+    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    return randomNumber;
   }
 }

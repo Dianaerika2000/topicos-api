@@ -32,14 +32,8 @@ export class AuthController {
     return this.authService.loginActualizado(LoginAuthDto);
   }
 
-  @Get('verify_email')
-  validateEmail(@Query() token: ActivateUserDto, @Res() response: Response) {
-    // response.set('Cache-Control', 'no-store'); 
-    // response.set('Pragma', 'no-cache');
-    // const domain = this.configService.get('FRONTEND_URL');
-    // const url = `${domain}/app-login`;  
-    // await this.authService.activateUser(token);
-    // response.redirect(201, url);
+  @Post('verify_email')
+  validateEmail(@Body() token: ActivateUserDto) {
     return this.authService.verifyEmail(token);
   }
 
@@ -58,4 +52,8 @@ export class AuthController {
   //   return this.authService.validateEmail(email);
   // }
   
+  @Get('ramdom-number')
+  generateRandomNumber(){
+    return this.authService.generateRandomNumber();
+  }
 }

@@ -391,9 +391,9 @@ export class DenunciationService {
     }
   }
 
-  async verifyDescription( description: string ) {
-    const validatedDescription = await this.openAIService.validateDescriptionGPT3( description );
-    console.log(validatedDescription);
-    return validatedDescription == 'Si' || 'Si.' ? true : false;
-  }
+  // async verifyDescription( description: string ) {
+  //   const validatedDescription = await this.openAIService.validateDescriptionGPT3( description );
+  //   console.log(validatedDescription);
+  //   return validatedDescription == 'Si' || 'Si.' ? true : false;
+  // }
 }

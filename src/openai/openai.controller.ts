@@ -7,7 +7,8 @@ export class OpenaiController {
   constructor(private readonly openaiService: OpenaiService) {}
 
   @Post()
-  validateDescription(@Body() description: string) {
+  validateDescription(@Body() description: ValidateDescriptionDto) {
+    console.log('description', description)
     return this.openaiService.validateDescriptionGPT3(description);
   }
 }
