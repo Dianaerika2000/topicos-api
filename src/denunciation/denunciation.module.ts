@@ -11,6 +11,7 @@ import { Images } from './entities/images.entity';
 import { HttpModule } from '@nestjs/axios';
 import { OpenaiModule } from 'src/openai/openai.module';
 import { Notification } from './entities/notification.entity';
+import { AwsRekognitionModule } from 'src/aws-rekognition/aws-rekognition.module';
 // import { DenuciationGateway } from './denunciation.gateway';
 
 @Module({
@@ -22,6 +23,7 @@ import { Notification } from './entities/notification.entity';
     CloudinaryModule,
     HttpModule,
     OpenaiModule,
+    AwsRekognitionModule,
   ],
   controllers: [DenunciationController],
   providers: [DenunciationService,],

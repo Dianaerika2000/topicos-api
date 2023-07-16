@@ -4,6 +4,7 @@ export class CreateDenunciationDto {
 
   @IsString()
   title: string;
+  
   @IsString()
   @MinLength(60)
   @MaxLength(512)

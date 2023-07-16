@@ -18,6 +18,7 @@ import { OpenaiService } from 'src/openai/openai.service';
 import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
 import { Notification } from './entities/notification.entity';
 import axios from 'axios';
+import { AwsRekognitionService } from 'src/aws-rekognition/aws-rekognition.service';
 
 @Injectable()
 export class DenunciationService {
@@ -47,6 +48,8 @@ export class DenunciationService {
     private readonly configService: ConfigService,
 
     private readonly openAIService: OpenaiService,
+
+    private readonly awsRekognitionService: AwsRekognitionService,
   ){}
     
   async findNoId() {
@@ -102,13 +105,21 @@ export class DenunciationService {
       const neighbor = await this.neighborRepository.findOneBy({ id: createDenunciationDto.neighbor_id });
 
       if (!typeDenunciation){
-        throw new NotFoundException('Type denunciation not found');
+        return new NotFoundException('Type denunciation not found');
       }
+
       if (!neighbor) {
-        throw new Error('Neighbor not found');
+        return new Error('Neighbor not found');
       }  
 
-      const { images = [], description, ...denunciationDetails } = createDenunciationDto;
+      const { images, description, title, ...denunciationDetails } = createDenunciationDto;
+      const titleImageMatch: boolean = await this.awsRekognitionService.checkTitle(title, images[0]);
+
+      if( !titleImageMatch ){
+        return new BadRequestException({
+          error: 'La denuncia no coincide con la imagen',
+        });
+      }
 
       // const descriptionValidated: boolean = await this.validateDescription(description); // by Jasmany
      // const descriptionValidated: boolean = await this.verifyDescription(description); // by ME
@@ -126,6 +137,7 @@ export class DenunciationService {
         description: description,
         type_denunciation: typeDenunciation,
         neighbor: neighbor,
+        title: title,
         images: urls.map( image => this.imagesRepository.create({ url: image }))
         // images: images.map( image => this.imagesRepository.create({ url: image }))
       });
@@ -342,7 +354,7 @@ export class DenunciationService {
     if (error.code == 'ER_DUP_ENTRY') {
       throw new BadRequestException('Denunciation already exists');
     }
-    throw new InternalServerErrorException('Something went wrong');
+    throw new InternalServerErrorException('Something went wrong pipipi');
   }
 
   async uploadImageToCloudinary(file: Express.Multer.File) {
@@ -354,7 +366,9 @@ export class DenunciationService {
   
   async uploadImage64ToCloudinary(base64Image: string) {
     try {
-      const buffer = Buffer.from(base64Image, 'base64');
+      const buffer = Buffer.from(
+        base64Image.replace(/^data:image\/\w+;base64,/, ''),
+        'base64');
       const sharp = require('sharp');
       const processedImage = await sharp(buffer)
         .toFormat('jpeg')

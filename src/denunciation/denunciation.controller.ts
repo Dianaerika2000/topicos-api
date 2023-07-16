@@ -15,6 +15,7 @@ export class DenunciationController {
   create(@Body() createDenunciationDto: CreateDenunciationDto) {
     return this.denunciationService.createWithImage64(createDenunciationDto);
   }
+  
   @Get('filters')
   findByAllFilters(
     @Query('status') status: string,
@@ -24,10 +25,12 @@ export class DenunciationController {
   ) {
     return this.denunciationService.findByAllFilters(status, type, startDate, endDate);
   }
+
   @Get()
   findAllNoId() {
     return this.denunciationService.findNoId();
   }
+
   @Get(':id')
   findAll( @Param('id', ParseUUIDPipe) id: string, @Query() paginationDto: PaginationDto) {
     return this.denunciationService.findAll( paginationDto, id );

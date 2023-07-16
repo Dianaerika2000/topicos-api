@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [ ConfigModule ],
   controllers: [AwsRekognitionController],
-  providers: [AwsRekognitionService]
+  providers: [AwsRekognitionService],
+  exports: [AwsRekognitionService]
 })
 export class AwsRekognitionModule {}
