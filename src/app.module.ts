@@ -13,6 +13,7 @@ import { AreaModule } from './area/area.module';
 import { GovernmentEmployeeModule } from './government-employee/government-employee.module';
 import { MailModule } from './mail/mail.module';
 // import { DenuciationWsModule } from './denuciation-ws/denuciation-ws.module';
+import { NotificationModule } from './notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -37,7 +38,8 @@ import { MailModule } from './mail/mail.module';
     AreaModule,
     GovernmentEmployeeModule,
     MailModule,
-    // DenuciationWsModule
+    NotificationModule,
+    // DenuciationWsModule  
   ],
   controllers: [],
   providers: [CloudinaryModule, CloudinaryService],

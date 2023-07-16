@@ -16,6 +16,8 @@ import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiService } from 'src/openai/openai.service';
 import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
+import { Notification } from './entities/notification.entity';
+import axios from 'axios';
 
 @Injectable()
 export class DenunciationService {
@@ -32,6 +34,9 @@ export class DenunciationService {
     
     @InjectRepository(Images)
     private readonly imagesRepository: Repository<Images>,
+
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
     
     private readonly dataSource: DataSource,
     
@@ -396,4 +401,54 @@ export class DenunciationService {
   //   console.log(validatedDescription);
   //   return validatedDescription == 'Si' || 'Si.' ? true : false;
   // }
+
+  async updateDenunciationStatus(id: number, newStatus: string) {
+    const denunciation = await this.denunciationRepository.findOneBy({ id });
+  
+    if (!denunciation) {
+      throw new NotFoundException(`Denunciation with id ${id} not found`);
+    }
+  
+    const oldStatus = denunciation.status;
+  
+    denunciation.status = newStatus;
+    const updatedDenunciation = await this.denunciationRepository.save(denunciation);
+  
+    // Crear una notificación de edición de estado de denuncia
+    const notification = this.notificationRepository.create({
+      title: "denuncia_editada",
+      description: `La denuncia con id ${id} ha sido editada`,
+      denunciation: updatedDenunciation,
+    });
+    await this.notificationRepository.save(notification);
+  
+    // Construir el JSON de la notificación
+    const notificationJson = {
+      notification: {
+        body: `La denunica ${denunciation.title} que realizaste ha sido ${newStatus}`,
+        title: `Tu denuncia ha sido ${newStatus}`,
+      },
+      to: `${this.configService.get('TO_TOKEN')}`,
+    };
+  
+    // Llamar a la función para enviar la notificación a FCM
+    await this.sendNotificationToFCM(notificationJson);
+  
+    return updatedDenunciation;
+  }
+
+  async sendNotificationToFCM(notificationJson: any) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `key=${this.configService.get('FCM_SERVER_KEY')}}`
+    };
+  
+    try {
+      await axios.post('https://fcm.googleapis.com/fcm/send', notificationJson, { headers });
+      // console.log(first)
+    } catch (error) {
+      // Manejar errores de solicitud
+      console.error('Error al enviar la notificación a FCM:', error);
+    }
+  }
 }

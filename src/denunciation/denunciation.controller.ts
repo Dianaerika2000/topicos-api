@@ -110,4 +110,10 @@ export class DenunciationController {
   findOneByType(@Param('id', ParseIntPipe) id: number) {
     return this.denunciationService.findOne(id);
   }
+
+  @Patch(':id/status')
+  async updateDenunciationStatus(@Param('id') id: number, @Body('status') newStatus: string) {
+    const updatedDenunciation = await this.denunciationService.updateDenunciationStatus(id, newStatus);
+    return updatedDenunciation;
+  }
 }
