@@ -14,6 +14,7 @@ import { GovernmentEmployeeModule } from './government-employee/government-emplo
 import { MailModule } from './mail/mail.module';
 // import { DenuciationWsModule } from './denuciation-ws/denuciation-ws.module';
 import { NotificationModule } from './notification/notification.module';
+import { AwsRekognitionModule } from './aws-rekognition/aws-rekognition.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,6 +40,7 @@ import { NotificationModule } from './notification/notification.module';
     GovernmentEmployeeModule,
     MailModule,
     NotificationModule,
+    AwsRekognitionModule,
     // DenuciationWsModule  
   ],
   controllers: [],
