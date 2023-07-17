@@ -16,6 +16,9 @@ import { firstValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiService } from 'src/openai/openai.service';
 import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
+import { Notification } from './entities/notification.entity';
+import axios from 'axios';
+import { AwsRekognitionService } from 'src/aws-rekognition/aws-rekognition.service';
 
 @Injectable()
 export class DenunciationService {
@@ -32,6 +35,9 @@ export class DenunciationService {
     
     @InjectRepository(Images)
     private readonly imagesRepository: Repository<Images>,
+
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
     
     private readonly dataSource: DataSource,
     
@@ -42,6 +48,8 @@ export class DenunciationService {
     private readonly configService: ConfigService,
 
     private readonly openAIService: OpenaiService,
+
+    private readonly awsRekognitionService: AwsRekognitionService,
   ){}
     
   async findNoId() {
@@ -97,13 +105,21 @@ export class DenunciationService {
       const neighbor = await this.neighborRepository.findOneBy({ id: createDenunciationDto.neighbor_id });
 
       if (!typeDenunciation){
-        throw new NotFoundException('Type denunciation not found');
+        return new NotFoundException('Type denunciation not found');
       }
+
       if (!neighbor) {
-        throw new Error('Neighbor not found');
+        return new Error('Neighbor not found');
       }  
 
-      const { images = [], description, ...denunciationDetails } = createDenunciationDto;
+      const { images, description, title, ...denunciationDetails } = createDenunciationDto;
+      const titleImageMatch: boolean = await this.awsRekognitionService.checkTitle(title, images[0]);
+
+      if( !titleImageMatch ){
+        return new BadRequestException({
+          error: 'La denuncia no coincide con la imagen',
+        });
+      }
 
       // const descriptionValidated: boolean = await this.validateDescription(description); // by Jasmany
      // const descriptionValidated: boolean = await this.verifyDescription(description); // by ME
@@ -121,6 +137,7 @@ export class DenunciationService {
         description: description,
         type_denunciation: typeDenunciation,
         neighbor: neighbor,
+        title: title,
         images: urls.map( image => this.imagesRepository.create({ url: image }))
         // images: images.map( image => this.imagesRepository.create({ url: image }))
       });
@@ -337,7 +354,7 @@ export class DenunciationService {
     if (error.code == 'ER_DUP_ENTRY') {
       throw new BadRequestException('Denunciation already exists');
     }
-    throw new InternalServerErrorException('Something went wrong');
+    throw new InternalServerErrorException('Something went wrong pipipi');
   }
 
   async uploadImageToCloudinary(file: Express.Multer.File) {
@@ -349,7 +366,9 @@ export class DenunciationService {
   
   async uploadImage64ToCloudinary(base64Image: string) {
     try {
-      const buffer = Buffer.from(base64Image, 'base64');
+      const buffer = Buffer.from(
+        base64Image.replace(/^data:image\/\w+;base64,/, ''),
+        'base64');
       const sharp = require('sharp');
       const processedImage = await sharp(buffer)
         .toFormat('jpeg')
@@ -396,4 +415,54 @@ export class DenunciationService {
   //   console.log(validatedDescription);
   //   return validatedDescription == 'Si' || 'Si.' ? true : false;
   // }
+
+  async updateDenunciationStatus(id: number, newStatus: string) {
+    const denunciation = await this.denunciationRepository.findOneBy({ id });
+  
+    if (!denunciation) {
+      throw new NotFoundException(`Denunciation with id ${id} not found`);
+    }
+  
+    const oldStatus = denunciation.status;
+  
+    denunciation.status = newStatus;
+    const updatedDenunciation = await this.denunciationRepository.save(denunciation);
+  
+    // Crear una notificación de edición de estado de denuncia
+    const notification = this.notificationRepository.create({
+      title: "denuncia_editada",
+      description: `La denuncia con id ${id} ha sido editada`,
+      denunciation: updatedDenunciation,
+    });
+    await this.notificationRepository.save(notification);
+  
+    // Construir el JSON de la notificación
+    const notificationJson = {
+      notification: {
+        body: `La denunica ${denunciation.title} que realizaste ha sido ${newStatus}`,
+        title: `Tu denuncia ha sido ${newStatus}`,
+      },
+      to: `${this.configService.get('TO_TOKEN')}`,
+    };
+  
+    // Llamar a la función para enviar la notificación a FCM
+    await this.sendNotificationToFCM(notificationJson);
+  
+    return updatedDenunciation;
+  }
+
+  async sendNotificationToFCM(notificationJson: any) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `key=${this.configService.get('FCM_SERVER_KEY')}}`
+    };
+  
+    try {
+      await axios.post('https://fcm.googleapis.com/fcm/send', notificationJson, { headers });
+      // console.log(first)
+    } catch (error) {
+      // Manejar errores de solicitud
+      console.error('Error al enviar la notificación a FCM:', error);
+    }
+  }
 }

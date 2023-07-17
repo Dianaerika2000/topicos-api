@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { TypeDenunciation } from "src/type-denunciation/entities/type-denunciation.entity";
 import { Auth } from "src/auth/entities/auth.entity";
 import { Images } from './images.entity';
+import { Notification } from "./notification.entity";
 
 @Entity()
 export class Denunciation {
@@ -45,4 +46,11 @@ export class Denunciation {
     { cascade: true, eager: true }
   )
   images?: Images[];
+
+  @OneToMany(
+    () => Notification,
+    notifications => notifications.denunciation,
+    { cascade: true, eager: true }
+  )
+  notifications?: Notification[];
 }
