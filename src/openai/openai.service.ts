@@ -10,21 +10,23 @@ export class OpenaiService {
     private readonly configService: ConfigService,
   ){}
   
-  async validateDescriptionGPT3(validateDescription : string) {
-    return this.generateText(validateDescription)
+  async validateDescriptionGPT3(validateDescription : ValidateDescriptionDto) {
+    const { prompt } = validateDescription;
+    return this.generateText(prompt)
   };
 
   async generateText(prompt : string) {
-    
-    const condition = `Responde con un si, solo si el siguiente comentario es ofensivo y con un no, si el comentario no es ofensivo: ${prompt}`;
-    
+    console.log(prompt)
+    const condition = `Tengo una pregunta y quiero que con un si,  en caso de que el siguiente comentario [${prompt}] puede dañar a las personas o hacer sentir mal o triste. Si el comentario no es ofensivo, responde con un no.`;
+    // const condition = `Responde con un si, solo si el siguiente comentario es ofensivo o obsceno o de mal gusto y con un no, si el comentario no es ofensivo: ${prompt}`;
+    console.log(condition)
     try {
       const response = await axios.post<ChatGptResponse>(
         'https://api.openai.com/v1/completions',
         {
           model: this.configService.get('OPENAI_MODEL'),
           prompt: condition,
-          temperature: 1,
+          temperature: 0.3,
           max_tokens: 100,
         },
         {

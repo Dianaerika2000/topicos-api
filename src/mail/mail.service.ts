@@ -10,17 +10,17 @@ export class MailService {
     private readonly configService: ConfigService,
   ) {}
 
-  async sendVerificationEmail(user: Auth, token: string) {
+  async sendVerificationEmail(correo: string, token: string) {
     const domain = this.configService.get('HOST_URL');
-    const url = `${domain}/auth/verify_email?token=${token}`; 
+    // const url = `${domain}/auth/verify_email?token=${token}`; 
 
     await this.mailerService.sendMail({
-      to: user.correo,
+      to: correo,
       template: './verify-email.hbs',
       subject: 'Verifica tu correo electrónico',
       context: {
-        name: user.nombre,
-        url,
+        name: correo,
+        token,
       },
     });
   }

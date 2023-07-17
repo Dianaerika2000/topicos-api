@@ -33,7 +33,7 @@ export class Auth {
     @Column({ type: 'boolean', default: false })
     active: boolean;
 
-    @Column({ type: 'uuid', unique: true, nullable: true })
+    @Column({ type: 'text', unique: true, nullable: true })
     activationToken: string;
 
     @OneToMany(

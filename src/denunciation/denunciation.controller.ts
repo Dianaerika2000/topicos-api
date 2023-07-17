@@ -94,11 +94,11 @@ export class DenunciationController {
     }
   }
 
-  @Post('description')
-  async validateDescription(@Body() description: string) {
-    // return this.denunciationService.validateDescription(description);
-    return this.denunciationService.verifyDescription( description );
-  }
+  // @Post('description')
+  // async validateDescription(@Body() description: string) {
+  //   // return this.denunciationService.validateDescription(description);
+  //   return this.denunciationService.verifyDescription( description );
+  // }
 
   //Denuncias por tipo para el funcionario 
   @Get('type-denunciation/:id')
