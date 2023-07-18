@@ -19,11 +19,17 @@ import { DateRangeDto } from 'src/common/dtos/dateRange.dto';
 import { Notification } from './entities/notification.entity';
 import axios from 'axios';
 import { AwsRekognitionService } from 'src/aws-rekognition/aws-rekognition.service';
+import { GovernmentEmployee } from 'src/government-employee/entities/government-employee.entity';
+import { Area } from 'src/area/entities/area.entity';
 
 @Injectable()
 export class DenunciationService {
   
   constructor(
+    @InjectRepository(Area)
+    private readonly areaRepository: Repository<Area>,
+    @InjectRepository(GovernmentEmployee)
+    private readonly governmentEmployeeRepository: Repository<GovernmentEmployee>,
     @InjectRepository(TypeDenunciation)
     private readonly typeDenunciationRepository: Repository<TypeDenunciation>,
     
@@ -197,7 +203,7 @@ export class DenunciationService {
     });
     return denunciations;
   }
-  async findByAllFilters(status: string, type: string, startDate: string, endDate: string) {
+  async findByAllFilters(id: number ,status: string, type: string, startDate: string, endDate: string) {
     try {
       let startDateObj = startDate ? new Date(`${startDate}T00:00:00`) : null;
       let endDateObj = endDate ? new Date(`${endDate}T23:59:59`) : null;
@@ -205,6 +211,8 @@ export class DenunciationService {
       const queryBuilder = this.denunciationRepository
         .createQueryBuilder('denunciation')
         .leftJoinAndSelect('denunciation.type_denunciation', 'typeDenunciation')
+        .leftJoinAndSelect('denunciation.images', 'images')
+        .leftJoinAndSelect('denunciation.neighbor', 'neighbor')
         .where('1 = 1'); // Condición inicial para poder agregar condiciones dinámicamente
 
       // Filtrar por estado si se proporciona
@@ -224,9 +232,27 @@ export class DenunciationService {
           endDate: endDateObj,
         });
       }
+      const employee = await this.governmentEmployeeRepository.findOneBy({ id });
+      const areaFilter = await this.areaRepository.findOneBy({id: employee.area.id});
+      const typeDenunciation = await this.typeDenunciationRepository.createQueryBuilder('typeDenunciation')
+      .leftJoinAndSelect('typeDenunciation.area', 'area')
+      .where('area.id = :id', { id: areaFilter.id }).getOne();
 
-      const denunciations = await queryBuilder.getMany();
-
+      /* const employee = await this.governmentEmployeeRepository.createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.area', 'areaDenunciation')
+      .leftJoinAndSelect('areaDenunciation.type_denunciation', 'typeDenunciation')
+      .leftJoinAndSelect('typeDenunciation.denunciation', 'denunciation')
+      .where('employee.id = :id', { id }).getOne(); */
+      
+     /*  console.log(employee);
+      console.log(areaFilter);
+      console.log(typeDenunciation);   */
+      let denunciations = await queryBuilder.getMany();
+      if(typeDenunciation){
+        denunciations = denunciations.filter(denunciation => denunciation.type_denunciation.id === typeDenunciation.id);
+      }else{
+        denunciations = [];
+      }
       return denunciations;
 
     }catch (error) {

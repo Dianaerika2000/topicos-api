@@ -22,8 +22,9 @@ export class DenunciationController {
     @Query('type') type: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Query('id') id: number,
   ) {
-    return this.denunciationService.findByAllFilters(status, type, startDate, endDate);
+    return this.denunciationService.findByAllFilters(id ,status, type, startDate, endDate);
   }
 
   @Get()

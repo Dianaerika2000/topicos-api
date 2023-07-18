@@ -12,6 +12,8 @@ import { HttpModule } from '@nestjs/axios';
 import { OpenaiModule } from 'src/openai/openai.module';
 import { Notification } from './entities/notification.entity';
 import { AwsRekognitionModule } from 'src/aws-rekognition/aws-rekognition.module';
+import { GovernmentEmployeeModule } from 'src/government-employee/government-employee.module';
+import { AreaModule } from 'src/area/area.module';
 // import { DenuciationGateway } from './denunciation.gateway';
 
 @Module({
@@ -19,11 +21,13 @@ import { AwsRekognitionModule } from 'src/aws-rekognition/aws-rekognition.module
     ConfigModule,
     TypeOrmModule.forFeature([Denunciation, Images, Notification]),
     TypeDenunciationModule,
+    AreaModule,
     AuthModule,
     CloudinaryModule,
     HttpModule,
     OpenaiModule,
     AwsRekognitionModule,
+    GovernmentEmployeeModule
   ],
   controllers: [DenunciationController],
   providers: [DenunciationService,],
