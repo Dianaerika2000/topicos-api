@@ -10,14 +10,17 @@ export class OpenaiService {
     private readonly configService: ConfigService,
   ){}
   
-  async validateDescriptionGPT3(validateDescription : ValidateDescriptionDto) {
-    const { prompt } = validateDescription;
+  // async validateDescriptionGPT3(validateDescription : ValidateDescriptionDto) {
+  //   const { prompt } = validateDescription;
+  //   return this.generateText(prompt)
+  // };
+  
+  async validateDescriptionGPT3(prompt : string) {
     return this.generateText(prompt)
   };
 
   async generateText(prompt : string) {
     const condition = `¿El siguiente texto tiene lenguaje ofensivo, odio, acoso o violencia? Si contiene la respuesta será 'true', si no contiene será 'false', solo quiero una palabra como respuesta. "${prompt}"`;
-    console.log("condition", condition)
     
     try {
       const response = await axios.post<ChatGptResponse>(

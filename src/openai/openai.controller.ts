@@ -8,7 +8,6 @@ export class OpenaiController {
 
   @Post()
   validateDescription(@Body() description: ValidateDescriptionDto) {
-    console.log('description', description)
-    return this.openaiService.validateDescriptionGPT3(description);
+    return this.openaiService.validateDescriptionGPT3(description.prompt);
   }
 }
