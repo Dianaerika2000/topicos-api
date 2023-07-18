@@ -456,7 +456,7 @@ export class DenunciationService {
   
     // Crear una notificación de edición de estado de denuncia
     const notification = this.notificationRepository.create({
-      title: "denuncia_editada",
+      title: `denuncia ${newStatus}`,
       description: `La denuncia con id ${id} ha sido editada`,
       denunciation: updatedDenunciation,
     });
@@ -465,10 +465,10 @@ export class DenunciationService {
     // Construir el JSON de la notificación
     const notificationJson = {
       notification: {
-        body: `La denunica ${denunciation.title} que realizaste ha sido ${newStatus}`,
         title: `Tu denuncia ha sido ${newStatus}`,
+        body: `La denunica ${denunciation.title} que realizaste ha sido ${newStatus}`,
       },
-      to: `${this.configService.get('TO_TOKEN')}`,
+      to: `fDNHbyTeQNCPZlkOcfAskU:APA91bFPZ0oV5sfOEWv4npEKCKRVEbUGtsHhYaM3596GpDfEk5leMDDHfZNvl4lAr1unhztrlt5C7rPnnGnXBXi0JAErnFVx4AhG_y3fc6ujzWtUehbMBlZn-ciS65y8FtfZUkBrwG76`,
     };
   
     // Llamar a la función para enviar la notificación a FCM
@@ -480,7 +480,7 @@ export class DenunciationService {
   async sendNotificationToFCM(notificationJson: any) {
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `key=${this.configService.get('FCM_SERVER_KEY')}}`
+      'Authorization': `key=AAAApfIfVr4:APA91bGj8MlXY0bXUtJp5RX_foeV13KViqRTLXU8Nm6uSjdu3HQ26yCda23SARf6npB4P9BRGK20Gi7tJx_ZZmJRXcE5HhxIUd2S08sXHrOkAz5VAypXLn9JbqgKAXA42vnCe9jxs1Dm`
     };
   
     try {

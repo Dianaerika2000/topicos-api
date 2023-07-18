@@ -16,17 +16,16 @@ export class OpenaiService {
   };
 
   async generateText(prompt : string) {
-    console.log(prompt)
-    const condition = `Tengo una pregunta y quiero que con un si,  en caso de que el siguiente comentario [${prompt}] puede dañar a las personas o hacer sentir mal o triste. Si el comentario no es ofensivo, responde con un no.`;
-    // const condition = `Responde con un si, solo si el siguiente comentario es ofensivo o obsceno o de mal gusto y con un no, si el comentario no es ofensivo: ${prompt}`;
-    console.log(condition)
+    const condition = `¿El siguiente texto tiene lenguaje ofensivo, odio, acoso o violencia? Si contiene la respuesta será 'true', si no contiene será 'false', solo quiero una palabra como respuesta. "${prompt}"`;
+    console.log("condition", condition)
+    
     try {
       const response = await axios.post<ChatGptResponse>(
         'https://api.openai.com/v1/completions',
         {
           model: this.configService.get('OPENAI_MODEL'),
           prompt: condition,
-          temperature: 0.3,
+          temperature: 0.6,
           max_tokens: 100,
         },
         {
